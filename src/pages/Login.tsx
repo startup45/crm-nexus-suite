@@ -1,28 +1,22 @@
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { signIn } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/contexts/AuthContext';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useStore } from '@/lib/store';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@crmnexus.com');
+  const [password, setPassword] = useState('Admin123!');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
-
-  // Redirect if user is already logged in
-  if (currentUser) {
-    navigate('/');
-  }
+  const { users, setCurrentUser } = useStore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,17 +26,23 @@ const Login = () => {
       return;
     }
     
-    try {
-      setIsLoading(true);
-      await signIn(email, password);
+    setIsLoading(true);
+    
+    // Simple mock login - find user by email
+    const user = users.find(u => u.email === email);
+    
+    if (user) {
+      // For demo purposes, any password works
+      setCurrentUser(user);
       toast.success('Login successful!');
-      navigate('/');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error.message || 'Failed to log in');
-    } finally {
-      setIsLoading(false);
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
+    } else {
+      toast.error('User not found. Use one of the demo accounts.');
     }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -59,7 +59,7 @@ const Login = () => {
             <span className="text-primary">CRM</span> Nexus Suite
           </h1>
           <p className="text-sm text-muted-foreground">
-            Enter your credentials to access your account
+            Enter credentials to access your account
           </p>
         </div>
 
@@ -67,7 +67,15 @@ const Login = () => {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Login</CardTitle>
             <CardDescription>
-              Enter your email and password to sign in
+              Demo version - Use one of these accounts:
+              <div className="mt-2 text-xs font-medium">
+                admin@crmnexus.com<br />
+                manager@crmnexus.com<br />
+                employee@crmnexus.com<br />
+                intern@crmnexus.com<br />
+                client@crmnexus.com
+              </div>
+              <div className="mt-1 text-xs">(any password works)</div>
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>

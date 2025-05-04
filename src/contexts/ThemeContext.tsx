@@ -1,72 +1,21 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
-
-type Theme = 'light' | 'dark';
+import React, { createContext, useContext, useEffect } from 'react';
+import { useStore } from '@/lib/store';
 
 interface ThemeContextProps {
-  theme: Theme;
+  theme: 'light' | 'dark';
   toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
+  const { theme, toggleTheme } = useStore();
 
-  // Load theme preference from local storage on mount
+  // Apply theme on mount and when it changes
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setTheme('dark');
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
-  // Sync theme with Firebase when user is logged in
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        try {
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userDocRef);
-          
-          if (userDoc.exists() && userDoc.data()?.theme) {
-            const userTheme = userDoc.data()?.theme as Theme;
-            setTheme(userTheme);
-            document.documentElement.classList.toggle('dark', userTheme === 'dark');
-            localStorage.setItem('theme', userTheme);
-          }
-        } catch (error) {
-          console.error('Error loading theme from Firebase:', error);
-        }
-      }
-    });
-
-    return unsubscribe;
-  }, []);
-
-  const toggleTheme = async () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-    localStorage.setItem('theme', newTheme);
-
-    // Save to Firebase if user is logged in
-    const user = auth.currentUser;
-    if (user) {
-      try {
-        const userDocRef = doc(db, 'users', user.uid);
-        await setDoc(userDocRef, { theme: newTheme }, { merge: true });
-      } catch (error) {
-        console.error('Error saving theme to Firebase:', error);
-      }
-    }
-  };
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

@@ -7,30 +7,32 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { signOut } from '@/lib/firebase';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useStore } from '@/lib/store';
 
 const Header = () => {
   const { theme, toggleTheme } = useTheme();
   const { currentUser, userRole } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const { setCurrentUser } = useStore();
 
   const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast.success('Logged out successfully');
-      navigate('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast.error('Failed to log out');
-    }
+    // In our version without Firebase, we just clear the currentUser
+    setCurrentUser(null);
+    toast.success('Logged out successfully');
+    navigate('/login');
   };
 
   const getUserInitials = () => {
-    if (!currentUser?.email) return 'U';
-    return currentUser.email.charAt(0).toUpperCase();
+    if (!currentUser?.fullName) return 'U';
+    
+    const nameParts = currentUser.fullName.split(' ');
+    if (nameParts.length > 1) {
+      return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
+    }
+    return currentUser.fullName.charAt(0).toUpperCase();
   };
 
   return (
@@ -71,7 +73,7 @@ const Header = () => {
           <DropdownMenuContent align="end">
             <div className="flex items-center justify-start gap-2 p-2">
               <div className="flex flex-col space-y-1 leading-none">
-                <p className="font-medium">{currentUser?.email}</p>
+                <p className="font-medium">{currentUser?.fullName}</p>
                 <p className="text-xs text-muted-foreground">{userRole}</p>
               </div>
             </div>

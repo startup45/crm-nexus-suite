@@ -13,8 +13,8 @@ interface MainLayoutProps {
   };
 }
 
-const MainLayout = ({ children, requiredPermission }: MainLayoutProps) => {
-  const { currentUser, loading, hasPermission } = useAuth();
+const MainLayout = ({ children }: MainLayoutProps) => {
+  const { currentUser, loading } = useAuth();
 
   // Handle loading state
   if (loading) {
@@ -28,11 +28,6 @@ const MainLayout = ({ children, requiredPermission }: MainLayoutProps) => {
   // Redirect to login if not authenticated
   if (!currentUser) {
     return <Navigate to="/login" />;
-  }
-
-  // Check permission if required
-  if (requiredPermission && !hasPermission(requiredPermission.module, requiredPermission.action)) {
-    return <Navigate to="/unauthorized" />;
   }
 
   return (

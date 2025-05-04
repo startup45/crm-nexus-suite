@@ -1,32 +1,27 @@
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { signUp } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuth } from '@/contexts/AuthContext';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useStore } from '@/lib/store';
+import { v4 as uuidv4 } from 'uuid';
 
 const Register = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('employee');
+  const [role, setRole] = useState<'admin' | 'manager' | 'employee' | 'intern' | 'client'>('employee');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
-
-  // Redirect if user is already logged in
-  if (currentUser) {
-    navigate('/');
-  }
+  const { users, setCurrentUser } = useStore();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,17 +41,31 @@ const Register = () => {
       return;
     }
     
-    try {
-      setIsLoading(true);
-      await signUp(email, password, fullName, role);
+    setIsLoading(true);
+    
+    // Check if email already exists
+    const existingUser = users.find(u => u.email === email);
+    if (existingUser) {
+      toast.error('Email is already registered');
+      setIsLoading(false);
+      return;
+    }
+    
+    // Create new user (in a real app, this would use firebase or an API)
+    const newUser = {
+      id: uuidv4(),
+      email,
+      fullName,
+      role,
+    };
+    
+    // In this demo version, we just show success and redirect
+    setTimeout(() => {
+      setCurrentUser(newUser);
       toast.success('Account created successfully!');
       navigate('/');
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      toast.error(error.message || 'Failed to register');
-    } finally {
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   return (
@@ -81,7 +90,7 @@ const Register = () => {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Sign Up</CardTitle>
             <CardDescription>
-              Enter your information to create an account
+              Demo version - Enter your information to create an account
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleRegister}>
@@ -109,12 +118,17 @@ const Register = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
-                <Select value={role} onValueChange={setRole}>
+                <Select 
+                  value={role} 
+                  onValueChange={(value) => setRole(value as 'admin' | 'manager' | 'employee' | 'intern' | 'client')}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="intern">Intern</SelectItem>
                     <SelectItem value="client">Client</SelectItem>
                   </SelectContent>

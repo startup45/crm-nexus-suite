@@ -14,9 +14,7 @@ import Clients from "./pages/Clients";
 import Tasks from "./pages/Tasks";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
-
-// Firebase initialization
-import "./lib/firebase";
+import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +26,7 @@ const App = () => (
         <Sonner position="top-right" />
         <BrowserRouter>
           <Routes>
+            <Route path="/index" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/" element={<Dashboard />} />
