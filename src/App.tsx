@@ -12,6 +12,17 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Clients from "./pages/Clients";
 import Tasks from "./pages/Tasks";
+import Leads from "./pages/Leads";
+import Projects from "./pages/Projects";
+import Interns from "./pages/Interns";
+import Attendance from "./pages/Attendance";
+import CalendarPage from "./pages/CalendarPage";
+import Documents from "./pages/Documents";
+import Finance from "./pages/Finance";
+import Messages from "./pages/Messages";
+import Support from "./pages/Support";
+import Ticketing from "./pages/Ticketing";
+import Settings from "./pages/Settings";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
@@ -32,19 +43,17 @@ const App = () => (
             <Route path="/" element={<Dashboard />} />
             <Route path="/clients" element={<Clients />} />
             <Route path="/tasks" element={<Tasks />} />
-            
-            {/* Add routes for other modules */}
-            <Route path="/leads" element={<Dashboard />} />
-            <Route path="/projects" element={<Dashboard />} />
-            <Route path="/interns" element={<Dashboard />} />
-            <Route path="/attendance" element={<Dashboard />} />
-            <Route path="/documents" element={<Dashboard />} />
-            <Route path="/finance" element={<Dashboard />} />
-            <Route path="/messages" element={<Dashboard />} />
-            <Route path="/support" element={<Dashboard />} />
-            <Route path="/ticketing" element={<Dashboard />} />
-            <Route path="/calendar" element={<Dashboard />} />
-            <Route path="/settings" element={<Dashboard />} />
+            <Route path="/leads" element={<Leads />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/interns" element={<Interns />} />
+            <Route path="/attendance" element={<Attendance />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="/finance" element={<Finance />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/support" element={<Support />} />
+            <Route path="/ticketing" element={<Ticketing />} />
+            <Route path="/settings" element={<Settings />} />
             
             {/* Special routes */}
             <Route path="/unauthorized" element={<Unauthorized />} />

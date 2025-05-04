@@ -10,6 +10,8 @@ import { Users, Briefcase, CheckSquare, UserPlus, Clock, DollarSign, LineChart a
 import MainLayout from '@/components/layout/MainLayout';
 import { subscribeToCollection } from '@/lib/firebase';
 import { toast } from 'sonner';
+import DashboardCalendar from '@/components/DashboardCalendar';
+import ChatBot from '@/components/ChatBot';
 
 // Sample data for the dashboard
 const revenueData = [
@@ -154,181 +156,193 @@ const Dashboard = () => {
           </div>
         )}
 
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* Revenue Overview Chart */}
-              <Card className="dashboard-card">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Revenue Overview</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <CardDescription>Monthly revenue for the current year</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={revenueData} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
-                        <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2">
+            <Tabs defaultValue="overview" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                <TabsTrigger value="reports">Reports</TabsTrigger>
+              </TabsList>
               
-              {/* Tasks Status Chart */}
-              <Card className="dashboard-card">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Task Status</CardTitle>
-                    <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <CardDescription>Current status of all tasks</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex h-[300px] items-center justify-center">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={taskStatusData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={100}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {taskStatusData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+              <TabsContent value="overview" className="space-y-4">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  {/* Revenue Overview Chart */}
+                  <Card className="dashboard-card">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>Revenue Overview</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <CardDescription>Monthly revenue for the current year</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={revenueData} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
+                            <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Tasks Status Chart */}
+                  <Card className="dashboard-card">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>Task Status</CardTitle>
+                        <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <CardDescription>Current status of all tasks</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex h-[300px] items-center justify-center">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={taskStatusData}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              outerRadius={100}
+                              fill="#8884d8"
+                              dataKey="value"
+                              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                            >
+                              {taskStatusData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
-            <Card className="dashboard-card">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Upcoming Deadlines</CardTitle>
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <CardDescription>Tasks and projects due soon</CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="py-3 px-4 text-left font-medium">Name</th>
-                        <th className="py-3 px-4 text-left font-medium">Type</th>
-                        <th className="py-3 px-4 text-left font-medium">Deadline</th>
-                        <th className="py-3 px-4 text-left font-medium">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b">
-                        <td className="py-3 px-4">Website Redesign</td>
-                        <td className="py-3 px-4">Project</td>
-                        <td className="py-3 px-4">Jun 15, 2025</td>
-                        <td className="py-3 px-4"><span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">In Progress</span></td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="py-3 px-4">Quarterly Report</td>
-                        <td className="py-3 px-4">Task</td>
-                        <td className="py-3 px-4">Jun 10, 2025</td>
-                        <td className="py-3 px-4"><span className="rounded-full bg-red-100 px-2 py-1 text-xs text-red-800 dark:bg-red-900 dark:text-red-200">Overdue</span></td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="py-3 px-4">Client Meeting</td>
-                        <td className="py-3 px-4">Event</td>
-                        <td className="py-3 px-4">Jun 8, 2025</td>
-                        <td className="py-3 px-4"><span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-800 dark:bg-green-900 dark:text-green-200">Confirmed</span></td>
-                      </tr>
-                      <tr>
-                        <td className="py-3 px-4">Marketing Campaign</td>
-                        <td className="py-3 px-4">Project</td>
-                        <td className="py-3 px-4">Jun 20, 2025</td>
-                        <td className="py-3 px-4"><span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200">Planning</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                <Card className="dashboard-card">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Upcoming Deadlines</CardTitle>
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <CardDescription>Tasks and projects due soon</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="py-3 px-4 text-left font-medium">Name</th>
+                            <th className="py-3 px-4 text-left font-medium">Type</th>
+                            <th className="py-3 px-4 text-left font-medium">Deadline</th>
+                            <th className="py-3 px-4 text-left font-medium">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">Website Redesign</td>
+                            <td className="py-3 px-4">Project</td>
+                            <td className="py-3 px-4">Jun 15, 2025</td>
+                            <td className="py-3 px-4"><span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">In Progress</span></td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">Quarterly Report</td>
+                            <td className="py-3 px-4">Task</td>
+                            <td className="py-3 px-4">Jun 10, 2025</td>
+                            <td className="py-3 px-4"><span className="rounded-full bg-red-100 px-2 py-1 text-xs text-red-800 dark:bg-red-900 dark:text-red-200">Overdue</span></td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">Client Meeting</td>
+                            <td className="py-3 px-4">Event</td>
+                            <td className="py-3 px-4">Jun 8, 2025</td>
+                            <td className="py-3 px-4"><span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-800 dark:bg-green-900 dark:text-green-200">Confirmed</span></td>
+                          </tr>
+                          <tr>
+                            <td className="py-3 px-4">Marketing Campaign</td>
+                            <td className="py-3 px-4">Project</td>
+                            <td className="py-3 px-4">Jun 20, 2025</td>
+                            <td className="py-3 px-4"><span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200">Planning</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="analytics" className="space-y-4">
+                <Card className="dashboard-card">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Performance Analytics</CardTitle>
+                      <LineChartIcon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[400px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={revenueData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" activeDot={{ r: 8 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="reports" className="space-y-4">
+                <Card className="dashboard-card">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Lead Conversion</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[400px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart
+                          data={revenueData}
+                          margin={{
+                            top: 10,
+                            right: 30,
+                            left: 0,
+                            bottom: 0,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary)/20)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
           
-          <TabsContent value="analytics" className="space-y-4">
-            <Card className="dashboard-card">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Performance Analytics</CardTitle>
-                  <LineChartIcon className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={revenueData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" activeDot={{ r: 8 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="reports" className="space-y-4">
-            <Card className="dashboard-card">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Lead Conversion</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={revenueData}
-                      margin={{
-                        top: 10,
-                        right: 30,
-                        left: 0,
-                        bottom: 0,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary)/20)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          {/* Add Calendar to the Dashboard */}
+          <div>
+            <DashboardCalendar />
+          </div>
+        </div>
       </div>
+      
+      {/* Add ChatBot component */}
+      <ChatBot />
     </MainLayout>
   );
 };
