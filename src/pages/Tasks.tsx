@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -179,7 +178,7 @@ const Tasks = () => {
     try {
       // In a real app: await addDocument('tasks', { ...formData, createdBy: currentUser.uid });
       
-      // Fix the type issue by ensuring status is one of the allowed values
+      // Fix the type issue by ensuring status and priority are properly typed
       const status = formData.status as 'todo' | 'in_progress' | 'in_review' | 'completed';
       const priority = formData.priority as 'low' | 'medium' | 'high';
       
@@ -193,7 +192,7 @@ const Tasks = () => {
         assignedTo: formData.assignedTo,
         dueDate: formData.dueDate,
         project: formData.project,
-        createdBy: currentUser?.uid || 'unknown',
+        createdBy: currentUser?.id || 'unknown', // Fixed: using id instead of uid
         createdAt: new Date().toISOString()
       };
       
@@ -216,7 +215,7 @@ const Tasks = () => {
                          task.description.toLowerCase().includes(searchQuery.toLowerCase());
                          
     if (activeTab === 'all') return matchesSearch;
-    if (activeTab === 'my') return matchesSearch && task.assignedTo === currentUser?.uid;
+    if (activeTab === 'my') return matchesSearch && task.assignedTo === currentUser?.id; // Fixed: using id instead of uid
     return matchesSearch && task.status === activeTab;
   });
 
