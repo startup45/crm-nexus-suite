@@ -21,6 +21,8 @@ import { PlusCircle, Search } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { useStore } from '@/lib/store';
 
+type LeadStatus = 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
+
 const Leads = () => {
   const { leads, addLead } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,8 +34,7 @@ const Leads = () => {
   const [phone, setPhone] = useState('');
   const [company, setCompany] = useState('');
   const [source, setSource] = useState('');
-  // Fixed the status type to match the required union type
-  const [status, setStatus] = useState<'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost'>('new');
+  const [status, setStatus] = useState<LeadStatus>('new');
 
   // Status colors
   const statusColors: Record<string, string> = {
@@ -88,6 +89,20 @@ const Leads = () => {
     setSource('');
     setStatus('new');
     setIsDialogOpen(false);
+  };
+
+  // Handler for status change that ensures type safety
+  const handleStatusChange = (value: string) => {
+    // Validate that the value is a valid status before setting it
+    if (value === 'new' || 
+        value === 'contacted' || 
+        value === 'qualified' || 
+        value === 'proposal' || 
+        value === 'negotiation' || 
+        value === 'won' || 
+        value === 'lost') {
+      setStatus(value);
+    }
   };
 
   return (
@@ -167,7 +182,7 @@ const Leads = () => {
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="status">Status</Label>
-                      <Select value={status} onValueChange={setStatus}>
+                      <Select value={status} onValueChange={handleStatusChange}>
                         <SelectTrigger id="status">
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
@@ -177,6 +192,8 @@ const Leads = () => {
                           <SelectItem value="qualified">Qualified</SelectItem>
                           <SelectItem value="proposal">Proposal</SelectItem>
                           <SelectItem value="negotiation">Negotiation</SelectItem>
+                          <SelectItem value="won">Won</SelectItem>
+                          <SelectItem value="lost">Lost</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
