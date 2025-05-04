@@ -120,6 +120,19 @@ export type Attendance = {
   status: 'present' | 'absent' | 'late' | 'half_day';
 };
 
+export type AttendanceReport = {
+  id: string;
+  userId: string;
+  month: string; // "YYYY-MM"
+  totalDays: number;
+  presentDays: number;
+  lateDays: number;
+  absentDays: number;
+  halfDays: number;
+  totalHours: number;
+  averageHoursPerDay: number;
+};
+
 // Mock data generator functions
 const generateMockUsers = (): User[] => [
   { id: '1', email: 'admin@crmnexus.com', fullName: 'System Administrator', role: 'admin' },
@@ -246,6 +259,49 @@ const generateMockLeads = (): Lead[] => [
   },
 ];
 
+const generateMockAttendance = (): Attendance[] => [
+  {
+    id: '1',
+    userId: '3',
+    date: new Date(2024, 4, 1).toISOString().split('T')[0],
+    checkIn: '09:05',
+    checkOut: '17:30',
+    status: 'present'
+  },
+  {
+    id: '2',
+    userId: '2',
+    date: new Date(2024, 4, 1).toISOString().split('T')[0],
+    checkIn: '08:45',
+    checkOut: '18:15',
+    status: 'present'
+  },
+  {
+    id: '3',
+    userId: '4',
+    date: new Date(2024, 4, 1).toISOString().split('T')[0],
+    checkIn: '09:20',
+    checkOut: '17:00',
+    status: 'late'
+  },
+  {
+    id: '4',
+    userId: '3',
+    date: new Date(2024, 4, 2).toISOString().split('T')[0],
+    checkIn: '09:00',
+    checkOut: '17:15',
+    status: 'present'
+  },
+  {
+    id: '5',
+    userId: '2',
+    date: new Date(2024, 4, 2).toISOString().split('T')[0],
+    checkIn: '',
+    checkOut: '',
+    status: 'absent'
+  }
+];
+
 // Main store interface
 interface StoreState {
   users: User[];
@@ -282,13 +338,19 @@ interface StoreState {
   updateLead: (id: string, lead: Partial<Lead>) => void;
   deleteLead: (id: string) => void;
   
+  // Attendance operations
+  addAttendance: (attendance: Omit<Attendance, 'id'>) => Attendance;
+  updateAttendance: (id: string, attendance: Partial<Attendance>) => void;
+  deleteAttendance: (id: string) => void;
+  generateAttendanceReport: (userId: string, month: string) => AttendanceReport;
+  
   toggleTheme: () => void;
 }
 
 // Create the store with persist middleware to save to localStorage
 export const useStore = create<StoreState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       users: generateMockUsers(),
       clients: generateMockClients(),
       tasks: generateMockTasks(),
@@ -299,7 +361,7 @@ export const useStore = create<StoreState>()(
       calendarEvents: [],
       documents: [],
       interns: [],
-      attendance: [],
+      attendance: generateMockAttendance(),
       theme: 'light',
       currentUser: { id: '1', email: 'admin@crmnexus.com', fullName: 'System Administrator', role: 'admin' },
       
@@ -399,6 +461,87 @@ export const useStore = create<StoreState>()(
         set((state) => ({
           leads: state.leads.filter((lead) => lead.id !== id),
         }));
+      },
+      
+      addAttendance: (attendance) => {
+        const newAttendance = { 
+          ...attendance, 
+          id: uuidv4()
+        };
+        set((state) => ({ attendance: [...state.attendance, newAttendance as Attendance] }));
+        return newAttendance as Attendance;
+      },
+      
+      updateAttendance: (id, updatedAttendance) => {
+        set((state) => ({
+          attendance: state.attendance.map((record) => 
+            record.id === id ? { ...record, ...updatedAttendance } : record
+          ),
+        }));
+      },
+      
+      deleteAttendance: (id) => {
+        set((state) => ({
+          attendance: state.attendance.filter((record) => record.id !== id),
+        }));
+      },
+      
+      generateAttendanceReport: (userId, month) => {
+        const state = get();
+        const userAttendance = state.attendance.filter(record => 
+          record.userId === userId && record.date.startsWith(month)
+        );
+        
+        let totalDays = 0;
+        let presentDays = 0;
+        let lateDays = 0;
+        let absentDays = 0;
+        let halfDays = 0;
+        let totalMinutes = 0;
+        
+        userAttendance.forEach(record => {
+          totalDays++;
+          
+          switch(record.status) {
+            case 'present':
+              presentDays++;
+              break;
+            case 'late':
+              lateDays++;
+              break;
+            case 'absent':
+              absentDays++;
+              break;
+            case 'half_day':
+              halfDays++;
+              break;
+          }
+          
+          // Calculate hours if check-in and check-out exist
+          if (record.checkIn && record.checkOut) {
+            const checkInTime = new Date(`2000-01-01T${record.checkIn}`);
+            const checkOutTime = new Date(`2000-01-01T${record.checkOut}`);
+            const diffMs = checkOutTime.getTime() - checkInTime.getTime();
+            const diffMinutes = Math.floor(diffMs / (1000 * 60));
+            totalMinutes += diffMinutes;
+          }
+        });
+        
+        const totalHours = Math.floor(totalMinutes / 60);
+        const averageHoursPerDay = totalDays > 0 ? Math.round((totalMinutes / 60 / totalDays) * 10) / 10 : 0;
+        
+        return {
+          id: uuidv4(),
+          userId,
+          month,
+          totalDays,
+          presentDays,
+          lateDays,
+          absentDays,
+          halfDays,
+          totalHours,
+          averageHoursPerDay
+        };
       },
       
       toggleTheme: () => {
