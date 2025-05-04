@@ -32,7 +32,8 @@ const Leads = () => {
   const [phone, setPhone] = useState('');
   const [company, setCompany] = useState('');
   const [source, setSource] = useState('');
-  const [status, setStatus] = useState('new');
+  // Fixed the status type to match the required union type
+  const [status, setStatus] = useState<'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost'>('new');
 
   // Status colors
   const statusColors: Record<string, string> = {
