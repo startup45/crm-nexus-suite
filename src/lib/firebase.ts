@@ -89,6 +89,69 @@ const getCurrentUser = (): Promise<User | null> => {
   });
 };
 
+// Function to create default admin user if it doesn't exist
+const createDefaultAdminIfNotExists = async () => {
+  const adminEmail = "admin@crmnexus.com";
+  const adminPassword = "Admin123!";
+  
+  try {
+    // Check if admin user already exists
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where("email", "==", adminEmail), where("role", "==", "admin"));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      try {
+        // Try to create the user with Firebase Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
+        
+        // Add admin user data to Firestore
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          uid: userCredential.user.uid,
+          email: adminEmail,
+          fullName: "System Administrator",
+          role: "admin",
+          createdAt: serverTimestamp(),
+        });
+        
+        console.log("Default admin account created successfully");
+        return true;
+      } catch (authError: any) {
+        // If the user already exists in Auth but not in Firestore
+        if (authError.code === 'auth/email-already-in-use') {
+          try {
+            // Sign in with the default credentials
+            const userCredential = await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
+            
+            // Add admin user data to Firestore if it doesn't exist
+            await setDoc(doc(db, 'users', userCredential.user.uid), {
+              uid: userCredential.user.uid,
+              email: adminEmail,
+              fullName: "System Administrator",
+              role: "admin",
+              createdAt: serverTimestamp(),
+            }, { merge: true });
+            
+            console.log("Default admin account updated in Firestore");
+            return true;
+          } catch (error) {
+            console.error("Error creating default admin in Firestore:", error);
+            return false;
+          }
+        }
+        console.error("Error creating default admin:", authError);
+        return false;
+      }
+    } else {
+      console.log("Default admin account already exists");
+      return true;
+    }
+  } catch (error) {
+    console.error("Error checking for default admin:", error);
+    return false;
+  }
+};
+
 // Data functions for various collections
 const addDocument = (collectionName: string, data: any) => {
   return addDoc(collection(db, collectionName), {
@@ -152,5 +215,6 @@ export {
   deleteDocument,
   getDocuments,
   getDocumentById,
-  subscribeToCollection
+  subscribeToCollection,
+  createDefaultAdminIfNotExists
 };
