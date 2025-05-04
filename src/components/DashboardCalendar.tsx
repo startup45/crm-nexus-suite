@@ -71,7 +71,7 @@ const DashboardCalendar = () => {
   // Function to highlight dates with events
   const dayClassNames = (day: Date) => {
     const isEventDate = events.some(event => isSameDay(event.date, day));
-    return isEventDate ? 'bg-primary/10 font-bold' : undefined;
+    return isEventDate ? 'bg-primary/10 font-bold' : '';
   };
 
   return (
@@ -88,7 +88,13 @@ const DashboardCalendar = () => {
             className="rounded-md border pointer-events-auto"
             classNames={{
               day_selected: 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground',
-              day: (props) => dayClassNames(props.date)
+              day: 'aria-selected:opacity-100'
+            }}
+            modifiers={{
+              highlighted: (date: Date) => events.some(event => isSameDay(event.date, date))
+            }}
+            modifiersClassNames={{
+              highlighted: 'bg-primary/10 font-bold'
             }}
           />
           
