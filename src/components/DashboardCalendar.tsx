@@ -88,7 +88,7 @@ const DashboardCalendar = () => {
             className="rounded-md border pointer-events-auto"
             classNames={{
               day_selected: 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground',
-              day: ({ date }) => dayClassNames(date) || ''
+              day: (props) => dayClassNames(props.date)
             }}
           />
           
