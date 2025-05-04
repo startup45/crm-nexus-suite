@@ -179,13 +179,24 @@ const Tasks = () => {
     try {
       // In a real app: await addDocument('tasks', { ...formData, createdBy: currentUser.uid });
       
+      // Fix the type issue by ensuring status is one of the allowed values
+      const status = formData.status as 'todo' | 'in_progress' | 'in_review' | 'completed';
+      const priority = formData.priority as 'low' | 'medium' | 'high';
+      
       // Mock add for demonstration
       const newTask: Task = {
         id: `task-${tasks.length + 1}`,
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        status: status,
+        priority: priority,
+        assignedTo: formData.assignedTo,
+        dueDate: formData.dueDate,
+        project: formData.project,
         createdBy: currentUser?.uid || 'unknown',
         createdAt: new Date().toISOString()
       };
+      
       setTasks([...tasks, newTask]);
       
       toast.success('Task added successfully');
