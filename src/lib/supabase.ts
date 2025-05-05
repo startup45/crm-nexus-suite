@@ -38,9 +38,7 @@ const createMockClient = () => {
           order: () => ({
             limit: () => ({ data: [], error: null }),
           }),
-          // Removed duplicate eq property
         }),
-        eq: () => ({ data: [], error: null }),
         neq: () => ({ data: [], error: null }),
         order: () => ({
           limit: () => ({ data: [], error: null }),
