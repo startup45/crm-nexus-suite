@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   Card, CardContent, CardDescription, CardHeader, CardTitle 
 } from '@/components/ui/card';
@@ -103,7 +103,7 @@ const Attendance = () => {
   });
 
   // Calculate current time spent if timer is active
-  const calculateElapsedTime = () => {
+  const calculateElapsedTime = useCallback(() => {
     if (!isActive || !startTime) return "00:00:00";
     
     const now = new Date();
@@ -113,7 +113,7 @@ const Attendance = () => {
     const seconds = Math.floor((elapsed % (1000 * 60)) / 1000).toString().padStart(2, '0');
     
     return `${hours}:${minutes}:${seconds}`;
-  };
+  }, [isActive, startTime]);
 
   return (
     <MainLayout>
