@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '@/lib/store';
 import { format } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -8,11 +8,14 @@ import { toast } from 'sonner';
 export function useAttendanceTimer() {
   const [isActive, setIsActive] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
-  const { currentUser, attendance } = useStore((state) => ({
+  const { currentUser, addAttendance, updateAttendance } = useStore(state => ({
     currentUser: state.currentUser,
-    attendance: state.attendance
+    addAttendance: state.addAttendance,
+    updateAttendance: state.updateAttendance
   }));
   
+  // Use ref for the current attendance record to avoid dependency issues
+  const currentAttendanceRef = useRef<{ id: string } | null>(null);
   const isMobile = useIsMobile();
 
   // Handle visibility change to stop timer if user switches tabs
@@ -57,7 +60,6 @@ export function useAttendanceTimer() {
     // Create attendance record with check-in
     if (currentUser) {
       const newAttendance = {
-        id: crypto.randomUUID(),
         userId: currentUser.id,
         date: format(now, 'yyyy-MM-dd'),
         checkIn: format(now, 'HH:mm'),
@@ -65,7 +67,9 @@ export function useAttendanceTimer() {
         status: 'present'
       };
       
-      // In a real app, this would be saved to the store
+      // Add the attendance record to the store
+      const record = addAttendance(newAttendance);
+      currentAttendanceRef.current = record;
       toast.success("Check-in recorded");
     }
   };
@@ -79,15 +83,19 @@ export function useAttendanceTimer() {
     const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
     
     setIsActive(false);
-    setStartTime(null);
-
+    
     // Update attendance record with check-out
-    if (currentUser) {
-      // In a real app, this would update the store
+    if (currentUser && currentAttendanceRef.current) {
+      updateAttendance(currentAttendanceRef.current.id, {
+        checkOut: format(now, 'HH:mm')
+      });
+      
       toast.success(`Check-out recorded. Worked for ${hours}h ${minutes}m`);
     }
     
-    // Generate report (in a real app would store this)
+    setStartTime(null);
+    
+    // Generate report
     return {
       date: format(now, 'yyyy-MM-dd'),
       duration: `${hours}h ${minutes}m`,
