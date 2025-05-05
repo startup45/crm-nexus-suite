@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const Login = () => {
   const [email, setEmail] = useState('admin@crmnexus.com');
@@ -27,6 +28,7 @@ const Login = () => {
     e.preventDefault();
     
     if (!email || !password) {
+      toast.error('Please enter both email and password');
       return;
     }
     
@@ -34,9 +36,12 @@ const Login = () => {
     
     try {
       await signIn(email, password);
+      toast.success('Login successful!');
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
+      // Show a user-friendly error message
+      toast.error(error instanceof Error ? error.message : 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

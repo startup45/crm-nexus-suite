@@ -2,67 +2,15 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
 
-// Get Supabase URL and key from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Use the project ID from the Supabase config
+const projectId = 'ddsyiiftopkjshenqpfk';
 
-// Log error if environment variables are not set
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error(
-    'Missing Supabase environment variables. Please make sure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set.'
-  );
-}
+// Set Supabase URL and key directly from the project info
+const supabaseUrl = `https://${projectId}.supabase.co`;
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkc3lpaWZ0b3BranNoZW5xcGZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTc4NjcsImV4cCI6MjA2MjAzMzg2N30.BYeeBAVtSbbILsn4rcmhvgqrdwnB5aH1rNv8MAe0nnc';
 
-// Create a mock Supabase client if variables are missing to prevent app from crashing
-// This allows the app to load, but Supabase functionality won't work
-const createMockClient = () => {
-  return {
-    auth: {
-      getSession: async () => ({ data: { session: null }, error: null }),
-      signInWithPassword: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
-      signOut: async () => ({ error: null }),
-      onAuthStateChange: (callback) => {
-        // Return a mock subscription object
-        return {
-          data: { 
-            subscription: { 
-              unsubscribe: () => {} 
-            } 
-          }
-        };
-      }
-    },
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          single: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
-          order: () => ({
-            limit: () => ({ data: [], error: null }),
-          }),
-        }),
-        neq: () => ({ data: [], error: null }),
-        order: () => ({
-          limit: () => ({ data: [], error: null }),
-        }),
-        match: () => ({ data: [], error: null }),
-      }),
-      insert: () => ({ error: { message: 'Supabase not configured' }, data: null }),
-      update: () => ({
-        eq: () => ({ error: null }),
-      }),
-      delete: () => ({
-        eq: () => ({ error: null }),
-      }),
-    }),
-    channel: () => ({
-      on: () => ({ subscribe: () => {} }),
-    }),
-  };
-};
-
-export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient<Database>(supabaseUrl, supabaseAnonKey)
-  : createMockClient() as any;
+// Create a real Supabase client with direct values instead of relying on env variables
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 // Helper function to get user ID from session
 export const getCurrentUserId = async () => {
