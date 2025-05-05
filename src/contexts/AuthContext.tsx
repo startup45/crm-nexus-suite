@@ -1,9 +1,18 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import type { User } from '@supabase/supabase-js';
+
+// Define user profile interface for extended user data
+interface UserProfile {
+  id: string;
+  user_id: string;
+  full_name: string;
+  role: 'admin' | 'manager' | 'employee' | 'intern' | 'client';
+  avatar_url?: string;
+  created_at: string;
+}
 
 interface AuthContextProps {
   currentUser: User | null;
@@ -18,16 +27,6 @@ interface AuthContextProps {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   hasPermission: (module: string, action: 'create' | 'read' | 'update' | 'delete') => boolean;
-}
-
-// Define user profile interface for extended user data
-interface UserProfile {
-  id: string;
-  user_id: string;
-  full_name: string;
-  role: 'admin' | 'manager' | 'employee' | 'intern' | 'client';
-  avatar_url?: string;
-  created_at: string;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);

@@ -1,5 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
 
 // Get Supabase URL and key from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -60,7 +61,7 @@ const createMockClient = () => {
 };
 
 export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient<Database>(supabaseUrl, supabaseAnonKey)
   : createMockClient() as any;
 
 // Helper function to get user ID from session
