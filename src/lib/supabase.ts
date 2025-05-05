@@ -20,6 +20,16 @@ const createMockClient = () => {
       getSession: async () => ({ data: { session: null }, error: null }),
       signInWithPassword: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
       signOut: async () => ({ error: null }),
+      onAuthStateChange: (callback) => {
+        // Return a mock subscription object
+        return {
+          data: { 
+            subscription: { 
+              unsubscribe: () => {} 
+            } 
+          }
+        };
+      }
     },
     from: () => ({
       select: () => ({
@@ -28,9 +38,7 @@ const createMockClient = () => {
           order: () => ({
             limit: () => ({ data: [], error: null }),
           }),
-          eq: () => ({
-            eq: () => ({ data: [], error: null }),
-          }),
+          // Removed duplicate eq property
         }),
         eq: () => ({ data: [], error: null }),
         neq: () => ({ data: [], error: null }),

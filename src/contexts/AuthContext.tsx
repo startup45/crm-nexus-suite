@@ -85,29 +85,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     initAuth();
     
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setCurrentUser(session.user);
-          
-          // Fetch updated profile data
-          const profile = await fetchUserProfile(session.user.id);
-          if (profile) {
-            setUserProfile(profile);
+    try {
+      // Set up auth state change listener with error handling
+      const { data } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (session?.user) {
+            setCurrentUser(session.user);
+            
+            // Fetch updated profile data
+            const profile = await fetchUserProfile(session.user.id);
+            if (profile) {
+              setUserProfile(profile);
+            }
+          } else {
+            setCurrentUser(null);
+            setUserProfile(null);
           }
-        } else {
-          setCurrentUser(null);
-          setUserProfile(null);
+          
+          setLoading(false);
         }
-        
-        setLoading(false);
-      }
-    );
-    
-    return () => {
-      subscription.unsubscribe();
-    };
+      );
+      
+      return () => {
+        if (data && data.subscription) {
+          data.subscription.unsubscribe();
+        }
+      };
+    } catch (error) {
+      console.error("Error setting up auth state change listener:", error);
+      setLoading(false);
+      return () => {};
+    }
   }, []);
   
   // Sign in function
