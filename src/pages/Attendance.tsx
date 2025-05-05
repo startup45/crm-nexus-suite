@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, CardContent, CardDescription, CardHeader, CardTitle 
@@ -16,7 +15,7 @@ import {
   Popover, PopoverContent, PopoverTrigger 
 } from '@/components/ui/popover';
 import { format } from 'date-fns';
-import { CalendarDays, Play, Stop } from 'lucide-react';
+import { CalendarDays, Play, Square } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAttendanceTimer } from '@/hooks/useAttendanceTimer';
@@ -148,7 +147,7 @@ const Attendance = () => {
                   variant="destructive"
                   className="w-28"
                 >
-                  <Stop className="mr-2 h-4 w-4" />
+                  <Square className="mr-2 h-4 w-4" />
                   Stop
                 </Button>
               </div>
