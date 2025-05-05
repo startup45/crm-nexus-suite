@@ -13,8 +13,16 @@ interface MainLayoutProps {
   };
 }
 
-const MainLayout = ({ children }: MainLayoutProps) => {
-  const { currentUser, loading } = useAuth();
+const MainLayout = ({ children, requiredPermission }: MainLayoutProps) => {
+  const { hasPermission, loading } = useAuth();
+
+  // Check permission if specified
+  if (requiredPermission) {
+    const { module, action } = requiredPermission;
+    if (!hasPermission(module, action)) {
+      return <Navigate to="/unauthorized" />;
+    }
+  }
 
   // Handle loading state
   if (loading) {
@@ -23,11 +31,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
       </div>
     );
-  }
-
-  // Redirect to login if not authenticated
-  if (!currentUser) {
-    return <Navigate to="/login" />;
   }
 
   return (

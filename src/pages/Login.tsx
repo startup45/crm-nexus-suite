@@ -1,14 +1,13 @@
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useStore } from '@/lib/store';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('admin@crmnexus.com');
@@ -16,33 +15,31 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { users, setCurrentUser } = useStore();
+  const { signIn, currentUser } = useAuth();
+
+  // Redirect if already logged in
+  if (currentUser) {
+    navigate('/');
+    return null;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
-      toast.error('Please enter both email and password');
       return;
     }
     
     setIsLoading(true);
     
-    // Simple mock login - find user by email
-    const user = users.find(u => u.email === email);
-    
-    if (user) {
-      // For demo purposes, any password works
-      setCurrentUser(user);
-      toast.success('Login successful!');
-      setTimeout(() => {
-        navigate('/');
-      }, 1000);
-    } else {
-      toast.error('User not found. Use one of the demo accounts.');
+    try {
+      await signIn(email, password);
+      navigate('/');
+    } catch (error) {
+      console.error('Login error:', error);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (
@@ -75,7 +72,7 @@ const Login = () => {
                 intern@crmnexus.com<br />
                 client@crmnexus.com
               </div>
-              <div className="mt-1 text-xs">(any password works)</div>
+              <div className="mt-1 text-xs">(Password for all: Admin123!)</div>
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
