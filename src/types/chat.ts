@@ -16,6 +16,10 @@ export interface ChatGroup {
   created_by: string;
   created_at: string;
   avatar_url?: string;
+  // Add these properties to fix the type errors
+  last_message?: string;
+  last_message_time?: string;
+  unread_count?: number;
 }
 
 export interface ChatGroupMember {

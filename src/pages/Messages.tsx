@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Card, CardContent, CardHeader, CardTitle, CardFooter
@@ -246,6 +245,7 @@ const Messages = () => {
                 </div>
               </TabsContent>
               
+              {/* Groups List Tab Content */}
               <TabsContent value="groups" className="m-0">
                 <div className="flex flex-col">
                   <div 

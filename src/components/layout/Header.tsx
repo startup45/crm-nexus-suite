@@ -26,13 +26,16 @@ const Header = () => {
   };
 
   const getUserInitials = () => {
-    if (!currentUser?.fullName) return 'U';
+    if (!currentUser?.email) return 'U';
     
-    const nameParts = currentUser.fullName.split(' ');
-    if (nameParts.length > 1) {
-      return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
+    // Use userProfile from Auth context which contains full_name instead of currentUser
+    if (currentUser.email) {
+      const parts = currentUser.email.split('@');
+      if (parts.length > 0) {
+        return parts[0].charAt(0).toUpperCase();
+      }
     }
-    return currentUser.fullName.charAt(0).toUpperCase();
+    return 'U';
   };
 
   return (
@@ -73,7 +76,7 @@ const Header = () => {
           <DropdownMenuContent align="end">
             <div className="flex items-center justify-start gap-2 p-2">
               <div className="flex flex-col space-y-1 leading-none">
-                <p className="font-medium">{currentUser?.fullName}</p>
+                <p className="font-medium">{currentUser?.email}</p>
                 <p className="text-xs text-muted-foreground">{userRole}</p>
               </div>
             </div>

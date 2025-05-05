@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -46,9 +45,9 @@ export function useChat() {
           }
 
           // Get unread count
-          const { data: unreadData, error: unreadError } = await supabase
+          const { count: unreadCount, error: unreadError } = await supabase
             .from('messages')
-            .select('id', { count: true })
+            .select('id', { count: 'exact' })
             .eq('sender_id', contact.user_id)
             .eq('receiver_id', currentUser.id)
             .eq('read', false);
@@ -66,7 +65,7 @@ export function useChat() {
             ...contact,
             last_message: lastMessage?.content || '',
             last_message_time: lastMessage?.created_at ? new Date(lastMessage.created_at).toLocaleString() : '',
-            unread_count: unreadData?.count || 0,
+            unread_count: unreadCount || 0,
             is_online: isOnline
           } as ChatContact;
         })
@@ -135,9 +134,9 @@ export function useChat() {
           }
 
           // Get unread count for this group
-          const { data: unreadData, error: unreadError } = await supabase
+          const { count: unreadCount, error: unreadError } = await supabase
             .from('messages')
-            .select('id', { count: true })
+            .select('id', { count: 'exact' })
             .eq('group_id', group.id)
             .neq('sender_id', currentUser.id)
             .eq('read', false);
@@ -147,19 +146,18 @@ export function useChat() {
           }
 
           const lastMessage = lastMessageData && lastMessageData.length > 0 ? lastMessageData[0] : null;
-          const unreadCount = unreadData?.count || 0;
 
           // Update unread counts state
           setUnreadCounts(prev => ({
             ...prev,
-            [`group-${group.id}`]: unreadCount
+            [`group-${group.id}`]: unreadCount || 0
           }));
 
           return {
             ...group,
             last_message: lastMessage?.content || '',
             last_message_time: lastMessage?.created_at ? new Date(lastMessage.created_at).toLocaleString() : '',
-            unread_count: unreadCount
+            unread_count: unreadCount || 0
           };
         })
       );
