@@ -32,7 +32,12 @@ const queryClient = new QueryClient();
 
 // Protected route wrapper component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { currentUser, loading } = useAuth();
+  const { currentUser, loading, bypassAuth } = useAuth();
+  
+  // If authentication is bypassed, render children immediately
+  if (bypassAuth) {
+    return <>{children}</>;
+  }
   
   if (loading) {
     return (

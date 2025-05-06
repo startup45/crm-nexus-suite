@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
 
 const Login = () => {
   const [email, setEmail] = useState('admin@crmnexus.com');
@@ -16,13 +17,14 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { signIn, currentUser } = useAuth();
+  const { signIn, currentUser, bypassAuth, setBypassAuth } = useAuth();
 
-  // Redirect if already logged in
-  if (currentUser) {
-    navigate('/');
-    return null;
-  }
+  // Redirect if already logged in or if bypass is enabled
+  useEffect(() => {
+    if (currentUser || bypassAuth) {
+      navigate('/');
+    }
+  }, [currentUser, bypassAuth, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +46,17 @@ const Login = () => {
       toast.error(error instanceof Error ? error.message : 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  const toggleBypass = () => {
+    const newValue = !bypassAuth;
+    setBypassAuth(newValue);
+    if (newValue) {
+      toast.success('Authentication bypass enabled. Access granted to all pages.');
+      setTimeout(() => navigate('/'), 1000);
+    } else {
+      toast.info('Authentication bypass disabled. Login required.');
     }
   };
 
@@ -82,6 +95,21 @@ const Login = () => {
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
+              {/* Bypass Authentication Toggle */}
+              <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+                <div className="space-y-0.5">
+                  <Label htmlFor="bypass-auth">Bypass Authentication</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Enable to skip login requirements
+                  </p>
+                </div>
+                <Switch
+                  id="bypass-auth"
+                  checked={bypassAuth}
+                  onCheckedChange={toggleBypass}
+                />
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -91,6 +119,7 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={bypassAuth}
                 />
               </div>
               <div className="space-y-2">
@@ -109,6 +138,7 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={bypassAuth}
                 />
               </div>
             </CardContent>
@@ -116,7 +146,7 @@ const Login = () => {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={isLoading}
+                disabled={isLoading || bypassAuth}
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>

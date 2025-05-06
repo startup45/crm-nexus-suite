@@ -2,18 +2,20 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { bypassAuth } = useAuth();
 
   useEffect(() => {
-    // Redirect to login after a short delay
+    // Redirect to login after a short delay, unless bypass is enabled
     const timeout = setTimeout(() => {
-      navigate("/login");
+      navigate(bypassAuth ? "/" : "/login");
     }, 3000);
     
     return () => clearTimeout(timeout);
-  }, [navigate]);
+  }, [navigate, bypassAuth]);
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">
@@ -24,14 +26,16 @@ const Index = () => {
           <AlertDescription className="text-green-800">
             Welcome to CRM Nexus Suite - Demo Version
             <div className="mt-2 text-sm">
-              This is a demo version without authentication or Firebase.
-              All features are simulated with local storage.
+              {bypassAuth 
+                ? "Authentication bypass is enabled. You can access all features without logging in."
+                : "This is a demo version. Please log in to continue."
+              }
             </div>
           </AlertDescription>
         </Alert>
         
         <p className="text-muted-foreground mt-4">
-          Redirecting to login page...
+          Redirecting to {bypassAuth ? "dashboard" : "login"} page...
         </p>
       </div>
     </div>

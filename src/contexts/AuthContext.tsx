@@ -27,6 +27,8 @@ interface AuthContextProps {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   hasPermission: (module: string, action: 'create' | 'read' | 'update' | 'delete') => boolean;
+  bypassAuth: boolean;
+  setBypassAuth: (bypass: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -35,7 +37,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  // Add bypassAuth state
+  const [bypassAuth, setBypassAuth] = useState<boolean>(
+    localStorage.getItem('bypassAuth') === 'true'
+  );
   
+  // Update localStorage when bypassAuth changes
+  useEffect(() => {
+    localStorage.setItem('bypassAuth', bypassAuth.toString());
+  }, [bypassAuth]);
+
   // Fetch user profile data when auth state changes
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -63,6 +74,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         setLoading(true);
         
+        // Skip session check if bypass is enabled
+        if (bypassAuth) {
+          setLoading(false);
+          return;
+        }
+        
         // Get current session
         const { data: { session } } = await supabase.auth.getSession();
         
@@ -83,6 +100,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     
     initAuth();
+    
+    // Skip auth listener if bypass is enabled
+    if (bypassAuth) {
+      return () => {};
+    }
     
     try {
       // Set up auth state change listener with error handling
@@ -115,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       return () => {};
     }
-  }, []);
+  }, [bypassAuth]);
   
   // Sign in function
   const signIn = async (email: string, password: string) => {
@@ -172,8 +194,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isIntern = userRole === 'intern';
   const isClient = userRole === 'client';
 
-  // Role-based permission checks
+  // Role-based permission checks - Allow all permissions if bypassAuth is true
   const hasPermission = (module: string, action: 'create' | 'read' | 'update' | 'delete'): boolean => {
+    if (bypassAuth) return true;
     if (!userRole) return false;
     
     // Define permission matrix based on roles and module/action
@@ -232,7 +255,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     userProfile,
     signIn,
     signOut,
-    hasPermission
+    hasPermission,
+    bypassAuth,
+    setBypassAuth
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
