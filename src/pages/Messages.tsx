@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Card, CardContent, CardHeader, CardTitle, CardFooter
@@ -156,6 +157,131 @@ const Messages = () => {
   
   const currentConversation = getCurrentConversation();
 
+  // Rendering the contact/group list tabs
+  const renderContactsAndGroupsTabs = () => (
+    <Tabs 
+      defaultValue="direct" 
+      value={activeTab}
+      onValueChange={(v) => setActiveTab(v as 'direct' | 'groups')}
+    >
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="direct" className="flex items-center gap-2">
+          <UserPlus className="h-4 w-4" />
+          Direct
+        </TabsTrigger>
+        <TabsTrigger value="groups" className="flex items-center gap-2">
+          <Users className="h-4 w-4" />
+          Groups
+        </TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="direct" className="m-0">
+        <div className="flex flex-col">
+          {loading ? (
+            <div className="flex items-center justify-center h-20">
+              <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
+            </div>
+          ) : filteredContacts.length > 0 ? (
+            filteredContacts.map((contact) => (
+              <div
+                key={contact.user_id}
+                className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
+                  selectedConversationId === contact.user_id && !isGroup ? 'bg-muted' : ''
+                }`}
+                onClick={() => handleSelectConversation(contact.user_id, false)}
+              >
+                <div className="relative">
+                  <Avatar>
+                    <AvatarImage src={contact.avatar_url || ''} />
+                    <AvatarFallback>{getInitials(contact.full_name)}</AvatarFallback>
+                  </Avatar>
+                  {contact.is_online && (
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"></span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-sm">{contact.full_name}</h3>
+                    <span className="text-xs text-muted-foreground">
+                      {contact.last_message_time || ''}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {contact.last_message || ''}
+                  </p>
+                </div>
+                {unreadCounts[contact.user_id] > 0 && (
+                  <Badge className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary">
+                    {unreadCounts[contact.user_id]}
+                  </Badge>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="p-4 text-center text-muted-foreground">
+              {searchQuery ? 'No contacts found.' : 'No contacts available.'}
+            </div>
+          )}
+        </div>
+      </TabsContent>
+      
+      <TabsContent value="groups" className="m-0">
+        <div className="flex flex-col">
+          <div 
+            className="flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors border-b border-border"
+            onClick={() => setIsCreateGroupOpen(true)}
+          >
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Plus className="h-5 w-5 text-primary" />
+            </div>
+            <div className="font-medium">Create New Group</div>
+          </div>
+          
+          {loading ? (
+            <div className="flex items-center justify-center h-20">
+              <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
+            </div>
+          ) : filteredGroups.length > 0 ? (
+            filteredGroups.map((group) => (
+              <div
+                key={group.id}
+                className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
+                  selectedConversationId === group.id && isGroup ? 'bg-muted' : ''
+                }`}
+                onClick={() => handleSelectConversation(group.id, true)}
+              >
+                <Avatar>
+                  <AvatarImage src={group.avatar_url || ''} />
+                  <AvatarFallback>{getInitials(group.name)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-sm">{group.name}</h3>
+                    <span className="text-xs text-muted-foreground">
+                      {group.last_message_time || ''}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {group.last_message || ''}
+                  </p>
+                </div>
+                {unreadCounts[`group-${group.id}`] > 0 && (
+                  <Badge className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary">
+                    {unreadCounts[`group-${group.id}`]}
+                  </Badge>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="p-4 text-center text-muted-foreground">
+              {searchQuery ? 'No groups found.' : 'No groups available.'}
+            </div>
+          )}
+        </div>
+      </TabsContent>
+    </Tabs>
+  );
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -175,131 +301,12 @@ const Messages = () => {
                 />
               </div>
               <div className="mt-2">
-                <Tabs 
-                  defaultValue="direct" 
-                  value={activeTab}
-                  onValueChange={(v) => setActiveTab(v as 'direct' | 'groups')}
-                >
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="direct" className="flex items-center gap-2">
-                      <UserPlus className="h-4 w-4" />
-                      Direct
-                    </TabsTrigger>
-                    <TabsTrigger value="groups" className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      Groups
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                {renderContactsAndGroupsTabs()}
               </div>
             </CardHeader>
             
             <CardContent className="p-0 overflow-y-auto flex-1">
-              <TabsContent value="direct" className="m-0">
-                <div className="flex flex-col">
-                  {loading ? (
-                    <div className="flex items-center justify-center h-20">
-                      <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
-                    </div>
-                  ) : filteredContacts.length > 0 ? (
-                    filteredContacts.map((contact) => (
-                      <div
-                        key={contact.user_id}
-                        className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
-                          selectedConversationId === contact.user_id && !isGroup ? 'bg-muted' : ''
-                        }`}
-                        onClick={() => handleSelectConversation(contact.user_id, false)}
-                      >
-                        <div className="relative">
-                          <Avatar>
-                            <AvatarImage src={contact.avatar_url || ''} />
-                            <AvatarFallback>{getInitials(contact.full_name)}</AvatarFallback>
-                          </Avatar>
-                          {contact.is_online && (
-                            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"></span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium text-sm">{contact.full_name}</h3>
-                            <span className="text-xs text-muted-foreground">
-                              {contact.last_message_time || ''}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {contact.last_message || ''}
-                          </p>
-                        </div>
-                        {unreadCounts[contact.user_id] > 0 && (
-                          <Badge className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary">
-                            {unreadCounts[contact.user_id]}
-                          </Badge>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-4 text-center text-muted-foreground">
-                      {searchQuery ? 'No contacts found.' : 'No contacts available.'}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              {/* Groups List Tab Content */}
-              <TabsContent value="groups" className="m-0">
-                <div className="flex flex-col">
-                  <div 
-                    className="flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors border-b border-border"
-                    onClick={() => setIsCreateGroupOpen(true)}
-                  >
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Plus className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="font-medium">Create New Group</div>
-                  </div>
-                  
-                  {loading ? (
-                    <div className="flex items-center justify-center h-20">
-                      <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
-                    </div>
-                  ) : filteredGroups.length > 0 ? (
-                    filteredGroups.map((group) => (
-                      <div
-                        key={group.id}
-                        className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
-                          selectedConversationId === group.id && isGroup ? 'bg-muted' : ''
-                        }`}
-                        onClick={() => handleSelectConversation(group.id, true)}
-                      >
-                        <Avatar>
-                          <AvatarImage src={group.avatar_url || ''} />
-                          <AvatarFallback>{getInitials(group.name)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium text-sm">{group.name}</h3>
-                            <span className="text-xs text-muted-foreground">
-                              {group.last_message_time || ''}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {group.last_message || ''}
-                          </p>
-                        </div>
-                        {unreadCounts[`group-${group.id}`] > 0 && (
-                          <Badge className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary">
-                            {unreadCounts[`group-${group.id}`]}
-                          </Badge>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-4 text-center text-muted-foreground">
-                      {searchQuery ? 'No groups found.' : 'No groups available.'}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
+              {/* This content is now handled by the tabs component */}
             </CardContent>
           </Card>
 
@@ -562,3 +569,4 @@ const Messages = () => {
 };
 
 export default Messages;
+
