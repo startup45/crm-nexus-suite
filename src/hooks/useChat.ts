@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -235,18 +236,18 @@ export function useChat() {
     }
     
     try {
-      const messageData: Partial<ChatMessage> = {
-        content,
+      // Fix: Create the message data object with explicit required fields
+      // instead of using Partial<ChatMessage>
+      const messageData = {
+        content: content, // content is required, so explicitly set it
         sender_id: currentUser.id,
         created_at: new Date().toISOString(),
-        read: false
+        read: false,
+        // Only include relevant fields based on conversation type
+        ...(isGroup 
+          ? { group_id: selectedConversationId } 
+          : { receiver_id: selectedConversationId })
       };
-      
-      if (isGroup) {
-        messageData.group_id = selectedConversationId;
-      } else {
-        messageData.receiver_id = selectedConversationId;
-      }
       
       const { data, error } = await supabase
         .from('messages')
